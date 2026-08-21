@@ -1,0 +1,43 @@
+id: db-query
+name: 数据库问数
+description: 关联数据库，用自然语言查询并出报告
+heading: 关联数据库，把问题直接问出来
+subtitle: 不用写 SQL，选好库表就能查数、做分析，并产出带洞察与建议的报告。
+inputPlaceholder: 描述你想查什么或分析什么。例如「统计近 12 个月各品类的销售额与同比变化，并输出一份分析报告」
+fileUpload: false
+outputOptions:
+  - key: depth
+    label: 分析深度
+    options:
+      - value: standard
+        label: 标准
+      - value: deep
+        label: 深度
+      - value: concise
+        label: 简洁
+  - key: format
+    label: 输出格式
+    options:
+      - value: markdown
+        label: 文本（Markdown）
+      - value: table_chart
+        label: 表格 + 图表
+      - value: report
+        label: 完整报告
+quickActions:
+  - title: 经营大盘与同比拆解
+    tags: ["出报告"]
+    description: 按月汇总核心指标，拆到品类与渠道并给出结论
+    prompt: 统计近12个月各品类的销售额与同比变化，并输出一份分析报告
+  - title: 销量 TOP 商品明细
+    tags: ["即问即答"]
+    description: 一句话查询，直接返回结果表并导出 CSV
+    prompt: 查询销量前10的商品及销售额
+  - title: 客户留存与流失诊断
+    tags: ["含建议"]
+    description: 按注册月分群算留存，定位流失环节与原因
+    prompt: 分析客户留存情况，按注册月分群，定位流失环节与原因
+  - title: 异常订单排查
+    tags: ["归因"]
+    description: 定位异常记录，逐层下钻到时间、渠道与商品
+    prompt: 排查最近30天的异常订单，按时间、渠道、商品维度定位原因

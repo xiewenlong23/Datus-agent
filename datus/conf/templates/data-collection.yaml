@@ -1,0 +1,21 @@
+id: data-collection
+name: 数据采集
+description: 网页数据结构化，翻页与登录态托管
+heading: 输入网址，自动采集结构化数据
+subtitle: 支持翻页、登录态托管、定时采集，数据直接入库或导出为 CSV/Excel。
+inputPlaceholder: 粘贴目标网页 URL，或描述你想采集什么数据
+fileUpload: false
+outputOptions: []
+quickActions:
+  - title: 商品列表采集
+    tags: ["电商"]
+    description: 采集商品标题、价格、销量、评价等字段
+    prompt: 采集这个电商页面的商品列表，包括标题、价格、销量和评价信息
+  - title: 新闻文章采集
+    tags: ["内容"]
+    description: 采集标题、正文、发布时间、作者
+    prompt: 采集这个新闻页面的文章信息，包括标题、正文、发布时间和作者
+  - title: 表格数据抓取
+    tags: ["结构化"]
+    description: 自动识别页面中的表格并结构化导出
+    prompt: 抓取这个页面中的表格数据，保持原有结构并导出为CSV

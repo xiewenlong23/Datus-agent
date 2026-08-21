@@ -1,0 +1,21 @@
+id: contract-writing
+name: 合同编写
+description: 按交易要素起草完整合同与备选条款
+heading: 告诉我合同类型，我来起草
+subtitle: 说明交易背景、双方角色和关键条款偏好，即可生成合同初稿。
+inputPlaceholder: 例如「起草一份软件开发合同，我方是甲方，预算 50 万，周期 3 个月」
+fileUpload: false
+outputOptions: []
+quickActions:
+  - title: 采购合同起草
+    tags: ["常用"]
+    description: 涵盖标的、交付、付款、验收、质保、违约等核心条款
+    prompt: 起草一份标准的采购合同，涵盖标的、交付、付款、验收、质保和违约条款
+  - title: 保密协议（NDA）起草
+    tags: ["常用"]
+    description: 双向保密，含期限、范围、例外情形
+    prompt: 起草一份双向保密协议，包含保密期限、范围和例外情形
+  - title: 劳务合同起草
+    tags: ["常用"]
+    description: 含薪酬、工时、保密、竞业限制等条款
+    prompt: 起草一份劳务合同，包含薪酬、工时、保密和竞业限制条款

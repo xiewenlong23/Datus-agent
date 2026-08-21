@@ -1,0 +1,43 @@
+id: data-analysis
+name: 数据分析
+description: 清洗建模、可视化与结论撰写
+heading: 告别繁琐，让数据自己说话
+subtitle: 上传表格或关联数据源，我来做清洗、建模、可视化，并写出结论。
+inputPlaceholder: 分析 2025 年中国新能源汽车销量数据，识别主要品牌市场份额及用户偏好，预测未来市场走向。
+fileUpload: true
+outputOptions:
+  - key: depth
+    label: 分析深度
+    options:
+      - value: standard
+        label: 标准
+      - value: deep
+        label: 深度
+      - value: concise
+        label: 简洁
+  - key: format
+    label: 输出格式
+    options:
+      - value: markdown
+        label: 文本（Markdown）
+      - value: table_chart
+        label: 表格 + 图表
+      - value: report
+        label: 完整报告
+quickActions:
+  - title: 销售趋势与同环比拆解
+    tags: ["6 张图表"]
+    description: 按月拆解同比环比，定位增长与下滑来源
+    prompt: 按月份拆解近12个月的销售趋势，计算同比和环比变化，定位增长和下滑的来源
+  - title: 商品转化漏斗诊断
+    tags: ["电商"]
+    description: 找出高点击低转化商品，给出改进优先级
+    prompt: 分析商品转化漏斗，找出高点击低转化的商品，给出改进优先级
+  - title: 客户分群与复购预测
+    tags: ["建模"]
+    description: RFM 分群，预测各群体 90 天复购概率
+    prompt: 用RFM模型对客户分群，预测各群体未来90天的复购概率
+  - title: 门店 GMV 异常归因
+    tags: ["归因"]
+    description: 逐层拆到品类、客流与客单价，定位主因
+    prompt: 对门店GMV异常进行归因分析，逐层拆解到品类、客流和客单价层面

@@ -199,6 +199,7 @@ class ChatService:
                             token_count=info.get("total_tokens", 0),
                             last_sql_queries=[],
                             is_active=False,
+                            task_type=info.get("task_type"),
                         )
                     )
                 except Exception as e:

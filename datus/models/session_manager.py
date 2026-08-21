@@ -785,6 +785,46 @@ class SessionManager:
             logger.debug(f"Error checking session existence for {session_id}: {e}")
             return False
 
+    def _ensure_task_type_column(self, db_path: str) -> None:
+        """Add task_type column to agent_sessions if it doesn't exist (migration)."""
+        try:
+            with sqlite3.connect(db_path, timeout=5.0) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA table_info(agent_sessions)")
+                columns = {row[1] for row in cursor.fetchall()}
+                if "task_type" not in columns:
+                    cursor.execute("ALTER TABLE agent_sessions ADD COLUMN task_type TEXT DEFAULT NULL")
+                    conn.commit()
+                    logger.debug(f"Added task_type column to agent_sessions (session db: {db_path})")
+        except Exception as e:
+            logger.debug(f"Could not add task_type column: {e}")
+
+    def set_session_task_type(self, session_id: str, task_type: str) -> bool:
+        """Set the task type for a session."""
+        self._validate_session_id(session_id)
+        db_path = os.path.join(self.session_dir, f"{session_id}.db")
+        if not os.path.exists(db_path):
+            return False
+        self._ensure_task_type_column(db_path)
+        try:
+            with sqlite3.connect(db_path, timeout=5.0) as conn:
+                # Ensure a row exists (fresh AdvancedSQLiteSession may not have
+                # written an agent_sessions row until the first message).
+                conn.execute(
+                    "INSERT OR IGNORE INTO agent_sessions (session_id) VALUES (?)",
+                    (session_id,),
+                )
+                conn.execute(
+                    "UPDATE agent_sessions SET task_type = ?, updated_at = CURRENT_TIMESTAMP "
+                    "WHERE session_id = ?",
+                    (task_type, session_id),
+                )
+                conn.commit()
+            return True
+        except Exception as e:
+            logger.debug(f"Could not set task_type for {session_id}: {e}")
+            return False
+
     def get_session_info(self, session_id: str) -> Dict[str, Any]:
         """
         Get information about a session.
@@ -823,7 +863,7 @@ class SessionManager:
                 # Get session metadata
                 cursor.execute(
                     """
-                    SELECT created_at, updated_at
+                    SELECT created_at, updated_at, task_type
                     FROM agent_sessions
                     WHERE session_id = ?
                     """,
@@ -836,6 +876,9 @@ class SessionManager:
                         "created_at": session_row[0],
                         "updated_at": session_row[1],
                     }
+                    # task_type may be NULL for legacy sessions
+                    task_type = session_row[2] if len(session_row) > 2 else None
+                    session_metadata["task_type"] = task_type
                 else:
                     session_metadata = {}
 

@@ -260,6 +260,7 @@ class ChatSessionItemInfo(BaseModel):
     token_count: int = Field(0, description="Total tokens used")
     last_sql_queries: List[str] = Field(default_factory=list, description="Recent SQL queries")
     is_active: bool = Field(False, description="Whether session is currently active")
+    task_type: Optional[str] = Field(None, description="Task template type (e.g. data-analysis, db-query)")
 
 
 class ChatSessionData(BaseModel):
@@ -312,6 +313,14 @@ class StreamChatInput(ChatInput):
             "AgentConfig state — required so concurrent SaaS users don't pollute each other's "
             "profile. None falls back to ``agent_config.active_profile_name``."
         ),
+    )
+    output_options: Optional[Dict[str, str]] = Field(
+        default=None,
+        description="Output configuration options (e.g. depth: standard/deep/concise, format: markdown/table_chart/report)",
+    )
+    task_type: Optional[str] = Field(
+        default=None,
+        description="Task template type (e.g. data-analysis, db-query). Used to set the session's task_type field.",
     )
 
 

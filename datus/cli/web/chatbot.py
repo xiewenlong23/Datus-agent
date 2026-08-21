@@ -89,7 +89,32 @@ def create_web_app(args: argparse.Namespace) -> FastAPI:
     #    so we can replace it with the chatbot HTML page.
     app.routes[:] = [r for r in app.routes if not (hasattr(r, "path") and r.path == "/" and hasattr(r, "methods"))]
 
-    # ── Resolve asset mode: local dist vs CDN ──────────────────────
+    # ── Check for Vite production build (frontend/dist/) ──────────
+    from pathlib import Path
+
+    _vite_dist = Path(__file__).resolve().parent.parent.parent.parent / "frontend" / "dist"
+    _use_vite = _vite_dist.exists() and (_vite_dist / "index.html").exists()
+
+    if _use_vite:
+        from fastapi.responses import JSONResponse
+
+        app.mount("/assets", StaticFiles(directory=str(_vite_dist / "assets")), name="frontend-assets")
+        _vite_index_html = (_vite_dist / "index.html").read_text(encoding="utf-8")
+
+        @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+        async def _vite_root():
+            return HTMLResponse(content=_vite_index_html)
+
+        @app.get("/{path:path}", response_class=HTMLResponse, include_in_schema=False)
+        async def _vite_spa(path: str):
+            if path.startswith(("api/", "health", "auth/", "docs", "openapi", "redoc")):
+                return JSONResponse(status_code=404, content={"detail": "Not found"})
+            return HTMLResponse(content=_vite_index_html)
+
+        logger.info("Serving frontend from Vite production build (frontend/dist/)")
+        return app
+
+    # ── Fallback: CDN / local dev mode ─────────────────────────────
     chatbot_dist = getattr(args, "chatbot_dist", None)
     use_local = False
 

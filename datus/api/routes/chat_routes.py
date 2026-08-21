@@ -36,6 +36,7 @@ from datus.api.models.chat_models import (
 from datus.api.models.cli_models import (
     ChatHistoryData,
     ChatSessionData,
+    ChatSessionItemInfo,
     CompactSessionData,
     CompactSessionInput,
     FeedbackChatInput,
@@ -722,3 +723,30 @@ async def _safe_post_chat(
         await hooks.post_chat(http_request, request, ctx)
     except Exception as exc:  # pragma: no cover — defensive
         logger.error("post_chat hook raised: %s", exc, exc_info=True)
+
+
+# ========== Task Type ==========
+
+
+@router.put(
+    "/sessions/{session_id}/task_type",
+    response_model=Result[dict],
+    summary="Set Session Task Type",
+    description="Set the task template type for a session (e.g. data-analysis, db-query)",
+)
+async def set_session_task_type(
+    session_id: Annotated[str, Path(description="Session ID")],
+    svc: ServiceDep,
+    ctx: AppContextDep,
+    body: dict,
+) -> Result[dict]:
+    task_type = body.get("task_type", "")
+    if not task_type:
+        return Result[dict](success=False, errorCode="INVALID_INPUT", errorMessage="task_type is required")
+    from datus.models.session_manager import SessionManager
+
+    session_mgr = SessionManager(session_dir=svc.chat._session_dir, scope=ctx.user_id)
+    success = session_mgr.set_session_task_type(session_id, task_type)
+    if not success:
+        return Result[dict](success=False, errorCode="SESSION_NOT_FOUND", errorMessage=f"Session {session_id} not found")
+    return Result[dict](success=True, data={"session_id": session_id, "task_type": task_type})
