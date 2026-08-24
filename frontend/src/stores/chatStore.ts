@@ -80,6 +80,16 @@ interface ChatState {
   outputOptions: Record<string, string>
   setOutputOption: (key: string, value: string) => void
   resetOutputOptions: () => void
+
+  // Toolbar selections
+  selectedAgent: string | null
+  setSelectedAgent: (agent: string | null) => void
+  selectedDatasource: string | null
+  setSelectedDatasource: (ds: string | null) => void
+  selectedModel: string | null
+  setSelectedModel: (model: string | null) => void
+  planMode: boolean
+  setPlanMode: (enabled: boolean) => void
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -119,4 +129,13 @@ export const useChatStore = create<ChatState>((set) => ({
     outputOptions: { ...state.outputOptions, [key]: value },
   })),
   resetOutputOptions: () => set({ outputOptions: {} }),
+
+  selectedAgent: null,
+  setSelectedAgent: (agent) => set({ selectedAgent: agent }),
+  selectedDatasource: null,
+  setSelectedDatasource: (ds) => set({ selectedDatasource: ds }),
+  selectedModel: null,
+  setSelectedModel: (model) => set({ selectedModel: model }),
+  planMode: false,
+  setPlanMode: (enabled) => set({ planMode: enabled }),
 }))

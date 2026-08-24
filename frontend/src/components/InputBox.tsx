@@ -55,11 +55,18 @@ export default function InputBox({ template }: InputBoxProps) {
     })
 
     // Connect to SSE stream
-    const { outputOptions, currentTaskType, sessionId } = useChatStore.getState()
+    const {
+      outputOptions, currentTaskType, sessionId,
+      selectedAgent, selectedDatasource, selectedModel, planMode,
+    } = useChatStore.getState()
     connectSSE('/api/v1/chat/stream', {
       message: content,
       session_id: sessionId || null,
       task_type: currentTaskType || null,
+      subagent_id: selectedAgent || null,
+      datasource: selectedDatasource || null,
+      model: selectedModel || null,
+      plan_mode: planMode,
       output_options: Object.keys(outputOptions).length > 0 ? outputOptions : null,
     })
   }, [text, addMessage, setIsStreaming, connectSSE])

@@ -458,6 +458,12 @@ async def lifespan(app: FastAPI):
 
     set_template_service(TemplateService())
 
+    # Initialize skill service
+    from datus.api.routes.skill_routes import set_skill_service
+    from datus.api.services.skill_service import SkillService
+
+    set_skill_service(SkillService())
+
     # Install a SIGUSR1 handler so operators can dump async task stacks from a
     # running (possibly daemonised) server: ``kill -USR1 <pid>`` writes the
     # snapshot to the log. Useful when a request hangs on an interaction that
@@ -516,6 +522,8 @@ def create_app(agent_args: argparse.Namespace) -> FastAPI:
         ("datus.api.routes.dashboard_routes", "dashboard"),
         ("datus.api.routes.report_routes", "report"),
         ("datus.api.routes.template_routes", "template"),
+        ("datus.api.routes.kb_overview_routes", "kb_overview"),
+        ("datus.api.routes.skill_routes", "skill"),
     ]
     import importlib
 

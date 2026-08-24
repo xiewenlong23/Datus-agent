@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import Toolbar from '../components/Toolbar'
 import TaskPanel from '../components/TaskPanel'
 import ChatArea from '../components/ChatArea'
 import { useChatStore } from '../stores/chatStore'
@@ -122,14 +123,17 @@ export default function ChatPage() {
 
   return (
     <div className="chat-page">
-      <TaskPanel
-        templates={templates}
-        currentTaskType={currentTaskType}
-        onSelect={setCurrentTaskType}
-        collapsed={!showTaskPanel}
-        onToggle={() => setShowTaskPanel(!showTaskPanel)}
-      />
-      <ChatArea template={currentTemplate} />
+      <Toolbar />
+      <div className="chat-page-body">
+        <TaskPanel
+          templates={templates}
+          currentTaskType={currentTaskType}
+          onSelect={setCurrentTaskType}
+          collapsed={!showTaskPanel}
+          onToggle={() => setShowTaskPanel(!showTaskPanel)}
+        />
+        <ChatArea template={currentTemplate} />
+      </div>
     </div>
   )
 }
