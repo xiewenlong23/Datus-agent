@@ -1,0 +1,25 @@
+id: contract-review
+name: 合同审查
+description: 风险条款定位、后果说明与可替换条文
+heading: 上传合同，或直接问我一个条款
+subtitle: 标出风险条款、说明不改的后果，并给出可直接替换的条文。
+inputPlaceholder: 想重点问什么？例如「这份采购合同里有哪些对我方不利的单方解除权」
+fileUpload: true
+outputOptions: []
+quickActions:
+  - title: 全条款风险体检
+    tags: ["全条款"]
+    description: 逐条扫描，输出风险等级、不改的后果与修改建议
+    prompt: 请对这份合同做全条款风险体检，逐条列出风险等级、后果和修改建议
+  - title: NDA 保密期限审查
+    tags: ["对照惯例"]
+    description: 期限、范围与例外情形是否合理，给出调整建议
+    prompt: 审查这份 NDA 的保密期限、范围和例外情形是否合理，给出调整建议
+  - title: 付款账期条款改写
+    tags: ["含话术"]
+    description: 可直接替换的条文，附让步区间与谈判口径
+    prompt: 改写合同中的付款账期条款，提供可直接替换的条文，附让步区间与谈判口径
+  - title: 两版实质差异比对
+    tags: ["需两份"]
+    description: 忽略措辞调整，只看权利义务变动与风险升降
+    prompt: 比对两份合同版本的实质差异，忽略措辞调整，重点看权利义务变动与风险升降

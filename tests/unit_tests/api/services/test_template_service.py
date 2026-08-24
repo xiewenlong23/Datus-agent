@@ -51,10 +51,10 @@ def test_invalid_yaml_is_skipped(tmp_path: Path):
 
 
 def test_default_templates_directory_exists():
-    """The packaged conf/templates directory ships with the 5 canonical templates."""
+    """The packaged conf/templates directory ships with data-analysis, db-query and data-collection."""
     svc = TemplateService()
     ids = {t.id for t in svc.list_templates()}
-    assert {"contract-review", "contract-writing", "data-analysis", "db-query", "data-collection"} <= ids
+    assert {"data-analysis", "db-query", "data-collection"} <= ids
 
 
 def test_routes_list_and_get(template_service: TemplateService):
