@@ -11,8 +11,6 @@ const NAV_ITEMS = [
 ]
 
 const TASK_TYPE_ICONS: Record<string, string> = {
-  'contract-review': '📄',
-  'contract-writing': '✏️',
   'data-analysis': '📊',
   'db-query': '🗄️',
   'data-collection': '🕷️',

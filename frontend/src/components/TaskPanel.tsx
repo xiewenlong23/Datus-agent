@@ -9,8 +9,6 @@ interface TaskPanelProps {
 }
 
 const TASK_ICONS: Record<string, string> = {
-  'contract-review': '📄',
-  'contract-writing': '✏️',
   'data-analysis': '📊',
   'db-query': '🗄️',
   'data-collection': '🕷️',
