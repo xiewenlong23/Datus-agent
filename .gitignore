@@ -73,3 +73,13 @@ build/
 /build_scripts/cache/
 # Local `pip install --target` output / plugin build artifacts at the repo root.
 /plugins/
+
+# Agent runtime outputs (reports / dashboards generated in the workspace)
+/reports/
+/dashboards/
+
+# ZCode client state
+.zcode/
+
+# TS incremental build info
+*.tsbuildinfo
