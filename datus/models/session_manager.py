@@ -861,14 +861,25 @@ class SessionManager:
                 cursor = conn.cursor()
 
                 # Get session metadata
-                cursor.execute(
-                    """
-                    SELECT created_at, updated_at, task_type
-                    FROM agent_sessions
-                    WHERE session_id = ?
-                    """,
-                    (session_id,),
-                )
+                try:
+                    cursor.execute(
+                        """
+                        SELECT created_at, updated_at, task_type
+                        FROM agent_sessions
+                        WHERE session_id = ?
+                        """,
+                        (session_id,),
+                    )
+                except sqlite3.OperationalError:
+                    # Legacy databases predate the task_type column
+                    cursor.execute(
+                        """
+                        SELECT created_at, updated_at
+                        FROM agent_sessions
+                        WHERE session_id = ?
+                        """,
+                        (session_id,),
+                    )
                 session_row = cursor.fetchone()
 
                 if session_row:

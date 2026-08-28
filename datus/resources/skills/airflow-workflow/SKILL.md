@@ -1,6 +1,6 @@
 ---
 name: airflow-workflow
-description: Execution guide for Airflow scheduled jobs — troubleshooting, updating, conn_id conventions, and cron references
+description: Airflow 定时任务执行指南——故障排查、任务更新、conn_id 命名规范与 cron 表达式参考
 tags:
   - scheduler
   - airflow

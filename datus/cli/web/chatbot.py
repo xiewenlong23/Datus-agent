@@ -89,32 +89,7 @@ def create_web_app(args: argparse.Namespace) -> FastAPI:
     #    so we can replace it with the chatbot HTML page.
     app.routes[:] = [r for r in app.routes if not (hasattr(r, "path") and r.path == "/" and hasattr(r, "methods"))]
 
-    # ── Check for Vite production build (frontend/dist/) ──────────
-    from pathlib import Path
-
-    _vite_dist = Path(__file__).resolve().parent.parent.parent.parent / "frontend" / "dist"
-    _use_vite = _vite_dist.exists() and (_vite_dist / "index.html").exists()
-
-    if _use_vite:
-        from fastapi.responses import JSONResponse
-
-        app.mount("/assets", StaticFiles(directory=str(_vite_dist / "assets")), name="frontend-assets")
-        _vite_index_html = (_vite_dist / "index.html").read_text(encoding="utf-8")
-
-        @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-        async def _vite_root():
-            return HTMLResponse(content=_vite_index_html)
-
-        @app.get("/{path:path}", response_class=HTMLResponse, include_in_schema=False)
-        async def _vite_spa(path: str):
-            if path.startswith(("api/", "health", "auth/", "docs", "openapi", "redoc")):
-                return JSONResponse(status_code=404, content={"detail": "Not found"})
-            return HTMLResponse(content=_vite_index_html)
-
-        logger.info("Serving frontend from Vite production build (frontend/dist/)")
-        return app
-
-    # ── Fallback: CDN / local dev mode ─────────────────────────────
+    # ── Resolve asset mode: local dist vs CDN ──────────────────────
     chatbot_dist = getattr(args, "chatbot_dist", None)
     use_local = False
 
@@ -208,7 +183,10 @@ def run_web_interface(args: argparse.Namespace) -> None:
 
     app = create_web_app(args)
 
-    _schedule_browser_open(url)
+    # Open the current React frontend (Vite dev server, port pinned in
+    # frontend/vite.config.ts) instead of the legacy built-in chatbot page
+    # served at ``url``.
+    _schedule_browser_open("http://localhost:5173")
 
     try:
         # Use Config + Server + asyncio.run() instead of uvicorn.run() to avoid

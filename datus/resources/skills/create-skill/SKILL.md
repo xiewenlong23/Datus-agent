@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: Create new Datus skills from scratch. Use when users want to build a new skill, scaffold a skill directory, or capture a workflow as a reusable skill. Trigger phrases include "create a skill", "make a skill for", "turn this into a skill", "new skill".
+description: 从零创建新的 Datus 技能。当用户想构建新技能、搭建技能目录骨架，或把一个流程沉淀为可复用技能时使用。触发词包括 "create a skill"、"make a skill for"、"turn this into a skill"、"new skill"、"创建一个技能"、"把这个做成技能"。
 tags: [skill, development, authoring]
 version: "1.0.0"
 user_invocable: false

@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import CommandPalette from '../components/CommandPalette'
 
 export default function ChatLayout() {
   return (
@@ -8,6 +9,7 @@ export default function ChatLayout() {
       <main className="chat-main">
         <Outlet />
       </main>
+      <CommandPalette />
     </div>
   )
 }

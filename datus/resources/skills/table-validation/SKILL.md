@@ -1,6 +1,6 @@
 ---
 name: table-validation
-description: Validate the column contract of a newly written table — column set, types, and nullability match expectations. Object existence and row counts are handled by the builtin layer and are out of scope. Data-content assertions belong to project-level validator skills.
+description: 校验新写入表的列契约——列集合、类型与可空性是否符合预期。对象存在性与行数由内置层负责，不在本技能范围内。数据内容断言属于项目级 validator 技能。
 tags:
   - data-engineering
   - validation

@@ -1,6 +1,6 @@
 ---
 name: osi-semantic-authoring
-description: OSI core schema semantic model authoring specification — field roles, structural keys, Datus extension hints, relationships, and validation
+description: OSI 核心 schema 语义模型编写规范——字段角色、结构键、Datus 扩展提示、关系与校验
 tags:
   - semantic-model
   - osi

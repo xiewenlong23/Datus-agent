@@ -1,6 +1,6 @@
 ---
 name: grafana-dashboard
-description: Create, view, and manage Grafana dashboards with panels and datasources
+description: 创建、查看和管理 Grafana 仪表盘及其面板与数据源
 tags:
   - grafana
   - dashboard

@@ -1,6 +1,6 @@
 ---
 name: gen-table
-description: Create database tables from SQL (CTAS) or natural language descriptions
+description: 通过 SQL（CTAS）或自然语言描述创建数据库表
 tags:
   - wide-table
   - CTAS

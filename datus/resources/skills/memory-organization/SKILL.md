@@ -1,6 +1,6 @@
 ---
 name: memory-organization
-description: Audit and reorganize every persistent store — semantic_models, metrics, reference_sql, knowledge, memory, AGENTS.md, skills — verifying each item sits in the correct store per storage-classify, and surfacing duplicates, misclassifications, conflicts, and stale/erroneous entries. Produce a Remediation Plan, STOP for confirmation, then execute. Use ask_user only for genuine decisions during analysis. If nothing needs fixing, report it and stop.
+description: 审计并重组所有持久化存储——semantic_models、metrics、reference_sql、knowledge、memory、AGENTS.md、skills——按 storage-classify 校验每个条目是否放在正确的存储中，并暴露重复、错分类、冲突以及过期/错误条目。产出一份修复计划（Remediation Plan），停下等待确认后执行。分析期间仅在真正的决策点使用 ask_user。若无需修复，直接报告并停止。
 tags:
   - memory
   - organization

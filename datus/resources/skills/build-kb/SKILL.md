@@ -1,6 +1,6 @@
 ---
 name: build-kb
-description: Build the project's vector-indexed knowledge base from files plus database metadata — optionally scoped to specific files / tables / datasources / domains. Scan the in-scope material, classify it into business domains, explore each domain's tables and docs in parallel with explore subagents (the validated-query SQL corpus is enumerated directly, no explore needed), then (after the user confirms a generation manifest — or directly, in the same turn, when the user has waived confirmation) route every artifact to its store via storage-classify, generating semantic_models / metrics / reference_sql (and mining any extra knowledge), and refresh AGENTS.md's KB index. The lightweight /init handles the AGENTS.md inventory plus file-based knowledge/memory; this skill owns the heavy vector-store generation.
+description: 从项目文件与数据库元数据构建带向量索引的知识库——可限定到特定文件 / 表 / 数据源 / 业务域。扫描范围内的材料，将其分类到业务域，用 explore 子代理并行探索各域的表与文档（已验证查询的 SQL 语料直接枚举，无需 explore），随后（在用户确认生成清单后——若用户已放弃确认，则当轮直接进行）通过 storage-classify 将每个产物路由到对应存储，生成 semantic_models / metrics / reference_sql（并挖掘额外知识），同时刷新 AGENTS.md 的 KB 索引。轻量级 /init 负责 AGENTS.md 清单与基于文件的 knowledge/memory；本技能负责重量级的向量库生成。
 tags:
   - build-kb
   - knowledge-base

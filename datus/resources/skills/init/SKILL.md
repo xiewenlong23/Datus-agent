@@ -1,6 +1,6 @@
 ---
 name: init
-description: Lightweight project initialization — optionally scoped to specific files / tables / datasources / domains. Infer the project goal and in-scope datasources, scan the in-scope file tree and database metadata (db/table/desc/sample), classify into business domains, then write an AGENTS.md inventory skeleton plus the cheap file-based stores (atomic facts to ./knowledge/*.md via lite extract-knowledge, durable preferences to memory). Stops short of the expensive vector-indexed stores (semantic_models / metrics / reference_sql). Single confirmation-free pass, low token cost.
+description: 轻量级项目初始化——可限定到特定文件 / 表 / 数据源 / 业务域。推断项目目标与范围内的数据源，扫描范围内的文件树和数据库元数据（db/table/desc/sample），分类到业务域，然后写入 AGENTS.md 清单骨架以及低成本的基于文件的存储（通过 lite extract-knowledge 将原子事实写入 ./knowledge/*.md，将持久偏好写入 memory）。不做高成本的向量索引存储（semantic_models / metrics / reference_sql）。单次免确认执行，token 成本低。
 tags:
   - init
   - workspace

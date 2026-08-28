@@ -1,6 +1,6 @@
 ---
 name: metricflow-semantic-authoring
-description: MetricFlow semantic model authoring specification — YAML structure, field classification, validation, and Knowledge Base publishing
+description: MetricFlow 语义模型编写规范——YAML 结构、字段分类、校验与知识库发布
 tags:
   - semantic-model
   - metricflow

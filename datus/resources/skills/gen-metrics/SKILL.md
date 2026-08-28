@@ -1,6 +1,6 @@
 ---
 name: gen-metrics
-description: Generate MetricFlow metrics from natural language business descriptions
+description: 从自然语言业务描述生成 MetricFlow 指标
 tags:
   - metrics
   - metricflow

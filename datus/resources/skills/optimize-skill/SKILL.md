@@ -1,6 +1,6 @@
 ---
 name: optimize-skill
-description: Optimize and improve existing Datus skills. Use when users want to edit a skill, improve its instructions, optimize its description for better triggering, or analyze skill performance based on usage sessions. Trigger phrases include "optimize skill", "improve skill", "edit skill", "fix skill", "skill not triggering".
+description: 优化和改进已有的 Datus 技能。当用户想编辑技能、改进其指令、优化其描述以提升触发效果，或基于使用会话分析技能表现时使用。触发词包括 "optimize skill"、"improve skill"、"edit skill"、"fix skill"、"skill not triggering"、"优化技能"、"技能不触发"。
 tags: [skill, optimization, improvement]
 version: "1.0.0"
 user_invocable: false

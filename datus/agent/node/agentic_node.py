@@ -683,6 +683,31 @@ class AgenticNode(Node):
         elif self.is_in_plan_mode():
             self.deactivate_plan_mode()
 
+    def _build_user_identity_reminder(self) -> str:
+        """Per-turn identity line: which user this session belongs to.
+
+        Lets the LLM address the user correctly and understand that
+        identity-bound tools (e.g. feishu_*) act under this user's identity.
+        No-op for anonymous / CLI sessions (no ``scope``).
+        """
+        scope = getattr(self, "scope", None)
+        if not scope:
+            return ""
+        try:
+            from datus.storage.feishu_user_store import get_user
+
+            user = get_user(scope)
+        except Exception:
+            return ""
+        if not user:
+            return ""
+        name = user.get("name") or user.get("en_name") or scope
+        return (
+            f"Current user: {name} (Feishu ID: {scope}). Tools marked as acting under "
+            "the user's identity (e.g. feishu_create_doc, feishu_send_message) perform "
+            "that action as THIS user in their own Feishu account."
+        )
+
     def _build_datasource_reminder(self, user_input: Any = None) -> str:
         """Live per-turn datasource line for the user-message envelope.
 
@@ -935,6 +960,12 @@ class AgenticNode(Node):
         self._sync_plan_mode_state(user_input)
 
         enhanced_parts: List[str] = []
+
+        # Identity line first so the model knows who it is talking to before
+        # any task context. Empty for anonymous / CLI sessions.
+        identity_reminder = self._build_user_identity_reminder()
+        if identity_reminder:
+            enhanced_parts.append(identity_reminder)
 
         # Live per-turn datasource line (dialect + catalog/database/schema in
         # one place). Deliberately NOT in the frozen system-prompt snapshot —

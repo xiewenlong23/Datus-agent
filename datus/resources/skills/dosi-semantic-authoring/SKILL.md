@@ -1,6 +1,6 @@
 ---
 name: dosi-semantic-authoring
-description: Dosi native OSI dataset, relationship, metric, and structured-window authoring contract
+description: Dosi 原生 OSI 数据集、关系、指标与结构化窗口（structured-window）的编写契约
 tags:
   - semantic-model
   - metrics

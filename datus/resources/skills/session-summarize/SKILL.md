@@ -1,6 +1,6 @@
 ---
 name: session-summarize
-description: Review the current chat session and persist its valuable takeaways — business facts/rules, validated SQL, metric/model definitions, durable preferences, project conventions, reusable workflows — by classifying each via storage-classify and routing it to the right store. Present a Summary Manifest and STOP for confirmation before any heavy generation. Use at the end of a working session or when the user asks to capture what was learned.
+description: 回顾当前会话并持久化其中有价值的内容——业务事实/规则、已验证 SQL、指标/模型定义、持久偏好、项目约定、可复用工作流——通过 storage-classify 对每条分类并路由到正确的存储。先展示摘要清单（Summary Manifest），在任何重量级生成前停下等待确认。用于工作会话结束时，或用户要求沉淀本次所学时。
 tags:
   - session
   - summarization

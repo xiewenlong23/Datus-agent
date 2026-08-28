@@ -1,6 +1,6 @@
 ---
 name: dashboard-bootstrap
-description: Bootstrap project reference SQL and metrics from a BI dashboard through an installed plugin. Use when the user asks to initialize, import, extract, or build context, reference SQL, semantic models, or metrics from a dashboard or requests dashboard bootstrap.
+description: 通过已安装的插件从 BI 仪表盘引导生成项目的 reference SQL 与指标。当用户要求从仪表盘初始化、导入、提取或构建上下文、reference SQL、语义模型或指标，或请求 dashboard bootstrap 时使用。
 ---
 
 # Dashboard Bootstrap

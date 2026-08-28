@@ -380,6 +380,15 @@ class SubAgentTaskTool:
                 session_id=session_id,
             )
 
+        # Inherit the parent's user scope so the child's session DB nests
+        # under {session_dir}/{scope}/{parent_session_id}/ like the parent's —
+        # without this the child falls back to the flat (anonymous) dir and
+        # its step history becomes invisible to the logged-in user's merged
+        # history. Must land before the first ``node.session_manager`` access
+        # (the lazy property caches the resolved directory).
+        if hasattr(node, "scope"):
+            node.scope = getattr(self._parent_node, "scope", None)
+
         self._inherit_permission_profile(node)
         return node
 

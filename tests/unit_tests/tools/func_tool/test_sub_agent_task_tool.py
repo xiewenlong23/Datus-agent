@@ -741,6 +741,49 @@ class TestNodeCreation:
         assert node1 is node_a
         assert node2 is node_b
 
+    def test_child_inherits_parent_scope(self, task_tool, tmp_path):
+        """The child node must inherit the parent's user scope so its session DB
+        nests under {session_dir}/{scope}/ like the parent's.
+
+        Regression: without propagation the child's scope stayed None and its
+        DB landed in the flat (anonymous) dir — invisible to the logged-in
+        user's merged history.
+        """
+        task_tool.agent_config.session_dir = str(tmp_path)
+        task_tool.agent_config.workspace_root = str(tmp_path)
+        task_tool._parent_node = SimpleNamespace(scope="ou_test_user", permission_manager=None)
+
+        node = task_tool._create_node("gen_visual_report")
+
+        assert node.scope == "ou_test_user"
+        assert node.session_manager.session_dir == str(tmp_path / "ou_test_user")
+
+    def test_child_scoped_and_nested_under_parent_session(self, task_tool, tmp_path):
+        """Scope + session_subdir together resolve the documented layout
+        {session_dir}/{scope}/{parent_session_id}/."""
+        task_tool.agent_config.session_dir = str(tmp_path)
+        task_tool.agent_config.workspace_root = str(tmp_path)
+        task_tool._parent_node = SimpleNamespace(scope="ou_test_user", permission_manager=None)
+
+        node = task_tool._create_node("gen_visual_report")
+        node.session_subdir = "chat_session_parent"
+
+        assert (
+            node.session_manager.session_dir
+            == str(tmp_path / "ou_test_user" / "chat_session_parent")
+        )
+
+    def test_child_without_parent_scope_stays_flat(self, task_tool, tmp_path):
+        """Anonymous parent (scope=None) keeps the child in the flat dir."""
+        task_tool.agent_config.session_dir = str(tmp_path)
+        task_tool.agent_config.workspace_root = str(tmp_path)
+        task_tool._parent_node = SimpleNamespace(scope=None, permission_manager=None)
+
+        node = task_tool._create_node("gen_visual_report")
+
+        assert node.scope is None
+        assert node.session_manager.session_dir == str(tmp_path)
+
 
 # ── permission profile inheritance ─────────────────────────────────
 

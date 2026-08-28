@@ -1,6 +1,6 @@
 ---
 name: transfer-reconciliation
-description: Lightweight post-transfer reconciliation example — verify tool-reported row count parity and run a small target-side sanity check without re-scanning the source.
+description: 轻量级迁移后对账示例——校验工具报告的行数一致性，并在不重扫源端的情况下做小规模目标端 sanity check。
 tags:
   - data-engineering
   - migration

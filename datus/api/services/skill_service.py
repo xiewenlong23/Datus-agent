@@ -16,6 +16,22 @@ logger = get_logger(__name__)
 _PROJECT_SKILLS = Path(__file__).parent.parent.parent / "resources" / "skills"
 _USER_SKILLS = Path.home() / ".datus" / "skills"
 
+_skill_service: Optional["SkillService"] = None
+
+
+def set_skill_service(service: "SkillService") -> None:
+    """Set the shared skill service instance (called during app init)."""
+    global _skill_service
+    _skill_service = service
+
+
+def get_skill_service() -> "SkillService":
+    """Get (or lazily create) the shared skill service instance."""
+    global _skill_service
+    if _skill_service is None:
+        _skill_service = SkillService()
+    return _skill_service
+
 
 class SkillInfo:
     """Metadata for a single skill."""

@@ -1,6 +1,6 @@
 ---
 name: create-subagent
-description: Create or update custom Datus subagents by editing the loaded agent.yml. Use when a workflow needs persistent agentic_nodes scoped to already-built tables, metrics, or reference SQL.
+description: 通过编辑已加载的 agent.yml 创建或更新自定义 Datus 子代理。当某个流程需要作用于已构建的表、指标或 reference SQL 的持久化 agentic_nodes 时使用。
 requires_mutable_config: true
 ---
 

@@ -2,6 +2,7 @@
 
 import asyncio
 from contextlib import AbstractContextManager
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -455,6 +456,81 @@ class TestChatServiceGetHistory:
 
         assert result.success is True
         assert len(result.data.messages) == 1
+
+
+class TestChatServiceSubagentHistoryMerge:
+    """Sub-agent sessions nested under the parent session dir are merged into
+    get_history output as depth=1 messages, with and without a user scope.
+
+    Regression: with per-user scoping (Feishu login) the merge resolved the
+    nested ``{session_id}/`` dir from the *unscoped* base session dir, so the
+    sub-agent step history of scoped sessions silently vanished on refresh.
+    """
+
+    USER = "user_ab12cd34"
+    SID = "chat_session_de705f5d"
+    SUB_SID = "gen_visual_report_session_0fe4691f"
+
+    def _seed(self, chat_svc, scope):
+        """Create a main session containing a task() call plus its sub-agent session."""
+        base = chat_svc._session_dir
+        sm = SessionManager(session_dir=base, scope=scope)
+        main = sm.create_session(self.SID)
+        asyncio.run(
+            main.add_items(
+                [
+                    {"role": "user", "content": "make me a report"},
+                    {
+                        "role": "assistant",
+                        "type": "function_call",
+                        "call_id": "call_1",
+                        "name": "task",
+                        "arguments": '{"type": "gen_visual_report", "prompt": "go"}',
+                    },
+                ]
+            )
+        )
+        # Sub-agent DBs nest inside the parent session's dir — under the same
+        # scope level the main session's .db resolves to.
+        sub_root = (Path(base) / self.USER / self.SID) if scope else (Path(base) / self.SID)
+        sub_sm = SessionManager(session_dir=str(sub_root), scope=None)
+        sub = sub_sm.create_session(self.SUB_SID)
+        asyncio.run(
+            sub.add_items(
+                [
+                    {"role": "user", "content": "generate the report"},
+                    {"role": "assistant", "content": [{"type": "output_text", "text": "report ready"}]},
+                ]
+            )
+        )
+
+    @staticmethod
+    def _depth1(result):
+        return [m for m in result.data.messages if m.depth == 1]
+
+    def test_get_history_merges_subagent_with_user_scope(self, chat_svc):
+        self._seed(chat_svc, scope=self.USER)
+
+        result = chat_svc.get_history(self.SID, user_id=self.USER)
+
+        assert result.success is True
+        nested = self._depth1(result)
+        assert nested, "sub-agent messages must be merged into scoped history"
+        # Anchored to the invoking task() call.
+        anchor = next(
+            m for m in result.data.messages if m.content and m.content[0].type == "call-tool"
+        )
+        assert all(m.parent_action_id == anchor.message_id for m in nested)
+
+    def test_get_history_merges_subagent_without_scope(self, chat_svc):
+        self._seed(chat_svc, scope=None)
+
+        result = chat_svc.get_history(self.SID)
+
+        assert result.success is True
+        nested = self._depth1(result)
+        assert nested, "sub-agent messages must be merged into unscoped history"
+        assert all(m.parent_action_id for m in nested)
 
 
 class TestChatServiceScopePropagation:

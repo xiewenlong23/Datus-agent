@@ -1,6 +1,6 @@
 ---
 name: superset-dashboard
-description: Create, view, and manage Superset dashboards with charts and datasets
+description: 创建、查看和管理 Superset 仪表盘及其图表与数据集
 tags:
   - superset
   - dashboard

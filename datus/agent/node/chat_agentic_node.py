@@ -150,6 +150,8 @@ class ChatAgenticNode(AgenticNode):
         # Setup ask_user tool for clarification questions (interactive mode only)
         if self.execution_mode == "interactive":
             self._setup_ask_user_tool()
+        # Per-user Feishu tools (docs/im); only for a logged-in user scope.
+        self._setup_feishu_tools()
         # No-op unless the request declared an orchestrator origin.
         self._setup_task_result_tool()
         self._rebuild_tools()
@@ -189,12 +191,31 @@ class ChatAgenticNode(AgenticNode):
             logger.warning("Failed to setup reference template tools, continuing without: %s", message)
 
     def _setup_date_parsing_tools(self):
-        """Setup date parsing tools."""
+        """Setup date parsing tools without blocking DB/chat capabilities."""
         try:
             self.date_parsing_tools = DateParsingTools(self.agent_config, self.model)
             self.tools.extend(self.date_parsing_tools.available_tools())
         except Exception as e:
             logger.error(f"Failed to setup date parsing tools: {e}")
+
+    def _setup_feishu_tools(self):
+        """Setup per-user Feishu tools (create doc / send message).
+
+        Enabled only when the node has a user ``scope`` (a logged-in web
+        session). The tools act as that user via lark-cli; without a scope
+        (CLI / anonymous) there is no user identity to act as, so they are
+        simply not registered.
+        """
+        try:
+            self.feishu_func_tool = None
+            if not self.scope:
+                return
+            from datus.tools.func_tool.feishu_tools import FeishuTools
+
+            self.feishu_func_tool = FeishuTools(user_id=self.scope, agent_config=self.agent_config)
+            self.tools.extend(self.feishu_func_tool.available_tools())
+        except Exception as e:
+            logger.error(f"Failed to setup feishu tools: {e}")
 
     def _setup_filesystem_tools(self):
         """Setup filesystem tools."""
@@ -274,6 +295,8 @@ class ChatAgenticNode(AgenticNode):
             self.tools.extend(self.sub_agent_task_tool.available_tools())
         if self.ask_user_tool:
             self.tools.extend(self.ask_user_tool.available_tools())
+        if self.feishu_func_tool:
+            self.tools.extend(self.feishu_func_tool.available_tools())
         # None unless the request declared an orchestrator origin. Must be re-added
         # here and not only in setup_tools: every rebuild (task-database switch,
         # skill reload) clears the list, and dropping this one silently strips the

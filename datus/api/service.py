@@ -459,8 +459,7 @@ async def lifespan(app: FastAPI):
     set_template_service(TemplateService())
 
     # Initialize skill service
-    from datus.api.routes.skill_routes import set_skill_service
-    from datus.api.services.skill_service import SkillService
+    from datus.api.services.skill_service import set_skill_service, SkillService
 
     set_skill_service(SkillService())
 
@@ -524,6 +523,8 @@ def create_app(agent_args: argparse.Namespace) -> FastAPI:
         ("datus.api.routes.template_routes", "template"),
         ("datus.api.routes.kb_overview_routes", "kb_overview"),
         ("datus.api.routes.skill_routes", "skill"),
+        ("datus.api.routes.skill_manage_routes", "skill_manage"),
+        ("datus.api.routes.auth_routes", "auth"),
     ]
     import importlib
 

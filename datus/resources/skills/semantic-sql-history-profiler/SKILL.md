@@ -1,6 +1,6 @@
 ---
 name: semantic-sql-history-profiler
-description: Optional semantic-model profiling workflow that mines historical SQL and bounded column distributions before YAML authoring
+description: 可选的语义模型画像工作流——在编写 YAML 前挖掘历史 SQL 与有界列分布
 tags:
   - semantic-model
   - sql-history

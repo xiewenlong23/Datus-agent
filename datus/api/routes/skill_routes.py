@@ -7,25 +7,9 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 
 from datus.api.models.base_models import Result
-from datus.api.services.skill_service import SkillInfo, SkillService
+from datus.api.services.skill_service import get_skill_service, set_skill_service
 
 router = APIRouter(prefix="/api/v1/skills", tags=["skills"])
-
-_skill_service: SkillService | None = None
-
-
-def set_skill_service(service: SkillService) -> None:
-    """Set the global skill service (called during app init)."""
-    global _skill_service
-    _skill_service = service
-
-
-def get_skill_service() -> SkillService:
-    """Get (or lazily create) the skill service."""
-    global _skill_service
-    if _skill_service is None:
-        _skill_service = SkillService()
-    return _skill_service
 
 
 @router.get("/list")

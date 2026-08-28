@@ -168,7 +168,17 @@ def _parse_json_object(value: Any) -> Any:
     try:
         parsed = json.loads(value)
     except (TypeError, ValueError):
-        return value
+        # History rows persist tool outputs as Python ``repr()`` strings
+        # (single-quoted dict literals) which ``json.loads`` rejects.
+        # ``ast.literal_eval`` parses them safely — literals only, no code
+        # execution — so history tool results normalize the same way the
+        # live (dict) outputs do.
+        import ast
+
+        try:
+            parsed = ast.literal_eval(value)
+        except (ValueError, SyntaxError, TypeError, MemoryError, RecursionError):
+            return value
     return parsed if isinstance(parsed, dict) else value
 
 
@@ -368,8 +378,27 @@ def _build_subagent_complete_content(action: ActionHistory) -> List[IMessageCont
 
 
 def _build_interaction_result_content(action: ActionHistory) -> Optional[List[IMessageContent]]:
-    """Build content for interaction result event (SUCCESS status)."""
+    """Build content for interaction result event (SUCCESS status).
+
+    Two output shapes reach here:
+
+    - ``{"user_choice": [...]}`` — a ``request()`` the user has answered
+      (``InteractionBroker.submit``). Re-emits the original ``user-interaction``
+      block stamped ``answered`` so the client card flips from pending to
+      answered in place. Without this the answer would never reach the wire:
+      the PROCESSING request stays the last word and a refresh/replay
+      reconstructs a card that looks still-open.
+    - ``{"content": ...}`` — one-way ``send()``-style interaction (e.g. a
+      plan preview): rendered as a plain markdown bubble.
+    """
     output = action.output if isinstance(action.output, dict) else {}
+    if "user_choice" in output:
+        base = _build_interaction_content(action)
+        if not base:
+            return None
+        payload = dict(base[0].payload)
+        payload["answered"] = output.get("user_choice") or []
+        return [IMessageContent(type="user-interaction", payload=payload)]
     content = output.get("content", "")
     if not content:
         return None
@@ -563,6 +592,12 @@ def action_to_sse_event(
             contents = _build_interaction_result_content(action)
             if contents is None:
                 return None
+            if contents[0].type == "user-interaction":
+                # The broker reuses the request's action_id for the answer,
+                # so this must UPDATE the pending card in place (same
+                # message_id) — a CREATE would render a second, orphaned
+                # interaction block.
+                sse_type = SSEDataType.UPDATE_MESSAGE
         elif role == ActionRole.USER:
             # ``user_insert`` is a mid-run injection: text the user typed
             # into the TUI / POSTed to ``/chat/insert`` while the agent

@@ -104,5 +104,14 @@ def get_app_context(request: Request) -> AppContext:
     return ctx
 
 
+def get_auth_provider() -> Optional[AuthProvider]:
+    """Return the active auth provider (set during lifespan).
+
+    Routes that need provider-specific behaviour (e.g. Feishu login config)
+    use this instead of reaching into module internals.
+    """
+    return _auth_provider
+
+
 ServiceDep = Annotated[DatusService, Depends(get_datus_service)]
 AppContextDep = Annotated[AppContext, Depends(get_app_context)]

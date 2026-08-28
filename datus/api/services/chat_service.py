@@ -6,7 +6,9 @@ for the actual agentic loop execution. Session management methods
 read from disk each time (no in-memory state).
 """
 
+import re
 import uuid
+from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from datus.agent.node.chat_agentic_node import ChatAgenticNode
@@ -301,7 +303,15 @@ class ChatService:
             return Result[CompactSessionData](success=False, errorCode="SESSION_COMPACT_ERROR", errorMessage=str(e))
 
     def get_history(self, session_id: str, user_id: Optional[str] = None) -> Result[ChatHistoryData]:
-        """Get chat history messages for a session."""
+        """Get chat history messages for a session.
+
+        Besides the session's own messages, the sub-agent sessions nested
+        under ``{session_dir}/{session_id}/`` (one per ``task()`` invocation,
+        e.g. ``gen_visual_report_session_ab12cd34.db``) are merged in as
+        ``depth=1`` messages anchored to the invoking tool call — otherwise
+        the sub-agent's step-by-step execution only ever existed in the
+        in-memory SSE event buffer and vanished from the UI on refresh.
+        """
         try:
             # Use SessionManager to get messages from SQLite
             session_manager = SessionManager(session_dir=self._session_dir, scope=user_id)
@@ -310,80 +320,11 @@ class ChatService:
             if not raw_messages:
                 return Result[ChatHistoryData](success=True, data=ChatHistoryData())
 
-            sse_messages: List[SSEMessagePayload] = []
-            event_id = 0
             logger.info(f"Retrieved {len(raw_messages)} messages for session {session_id}")
+            sse_messages = self._raw_messages_to_payloads(raw_messages)
+            sse_messages = self._merge_subagent_sessions(session_id, user_id, sse_messages)
 
-            for idx, msg in enumerate(raw_messages):
-                role = msg.get("role", "")
-                if role == "user":
-                    content = msg.get("content", "")
-                    if content:
-                        at_ctx_raw = msg.get("at_context")
-                        at_context = None
-                        if isinstance(at_ctx_raw, dict):
-                            at_context = AtContextData(
-                                table_paths=at_ctx_raw.get("table_paths") or [],
-                                metric_paths=at_ctx_raw.get("metric_paths") or [],
-                                sql_paths=at_ctx_raw.get("sql_paths") or [],
-                                knowledge_paths=at_ctx_raw.get("knowledge_paths") or [],
-                            )
-                        # A manual-execution record renders as readable Markdown
-                        # so the raw sentinel never reaches web clients.
-                        from datus.cli.manual_exec import exec_to_markdown
-
-                        content = exec_to_markdown(content)
-                        sse_messages.append(
-                            SSEMessagePayload(
-                                message_id=str(uuid.uuid4()),
-                                role="user",
-                                content=[IMessageContent(type="markdown", payload={"content": content})],
-                                at_context=at_context,
-                            )
-                        )
-                        event_id += 1
-                elif role == "assistant":
-                    if "actions" in msg:
-                        messages = msg["actions"]
-                        assistant_response_seen = False
-                        tool_result_seen = False
-                        # Maps fingerprint -> owning message_id; the helpers below
-                        # need the owner to tell a legitimate UPDATE from a repeat.
-                        seen_assistant_message_fingerprints: dict[str, str] = {}
-                        for action in messages:
-                            include_final_response = _should_include_final_response(action, assistant_response_seen)
-                            sse_event = action_to_sse_event(
-                                action,
-                                event_id,
-                                str(uuid.uuid4()),
-                                include_user_message=True,
-                                include_final_response=include_final_response,
-                            )
-                            if sse_event:
-                                if _should_skip_duplicate_assistant_message(
-                                    action,
-                                    sse_event,
-                                    seen_assistant_message_fingerprints,
-                                ):
-                                    continue
-                                sse_messages.append(sse_event.data.payload)
-                                event_id += 1
-                                _remember_assistant_message(sse_event, seen_assistant_message_fingerprints)
-                                if _is_visible_assistant_response(action, sse_event, tool_result_seen=tool_result_seen):
-                                    assistant_response_seen = True
-                                if action.role == ActionRole.TOOL and action.status != ActionStatus.PROCESSING:
-                                    tool_result_seen = True
-                    elif msg.get("content"):
-                        sse_messages.append(
-                            SSEMessagePayload(
-                                message_id=str(uuid.uuid4()),
-                                role="assistant",
-                                content=[IMessageContent(type="markdown", payload={"content": msg["content"]})],
-                            )
-                        )
-                        event_id += 1
-
-            logger.info(f"Retrieved {len(sse_messages)} messages for session {session_id}")
+            logger.info(f"History for session {session_id}: {len(sse_messages)} messages (subagent-merged)")
             return Result[ChatHistoryData](success=True, data=ChatHistoryData(messages=sse_messages))
 
         except Exception as e:
@@ -393,3 +334,172 @@ class ChatService:
                 errorCode="SESSION_HISTORY_ERROR",
                 errorMessage=f"Failed to get session history: {str(e)}",
             )
+
+    def _raw_messages_to_payloads(self, raw_messages: List[Dict]) -> List[SSEMessagePayload]:
+        """Convert raw session messages (dicts from SQLite) to SSE payloads."""
+        sse_messages: List[SSEMessagePayload] = []
+        event_id = 0
+
+        for idx, msg in enumerate(raw_messages):
+            role = msg.get("role", "")
+            if role == "user":
+                content = msg.get("content", "")
+                if content:
+                    at_ctx_raw = msg.get("at_context")
+                    at_context = None
+                    if isinstance(at_ctx_raw, dict):
+                        at_context = AtContextData(
+                            table_paths=at_ctx_raw.get("table_paths") or [],
+                            metric_paths=at_ctx_raw.get("metric_paths") or [],
+                            sql_paths=at_ctx_raw.get("sql_paths") or [],
+                            knowledge_paths=at_ctx_raw.get("knowledge_paths") or [],
+                        )
+                    # A manual-execution record renders as readable Markdown
+                    # so the raw sentinel never reaches web clients.
+                    from datus.cli.manual_exec import exec_to_markdown
+
+                    content = exec_to_markdown(content)
+                    sse_messages.append(
+                        SSEMessagePayload(
+                            message_id=str(uuid.uuid4()),
+                            role="user",
+                            content=[IMessageContent(type="markdown", payload={"content": content})],
+                            at_context=at_context,
+                        )
+                    )
+                    event_id += 1
+            elif role == "assistant":
+                if "actions" in msg:
+                    messages = msg["actions"]
+                    assistant_response_seen = False
+                    tool_result_seen = False
+                    # Maps fingerprint -> owning message_id; the helpers below
+                    # need the owner to tell a legitimate UPDATE from a repeat.
+                    seen_assistant_message_fingerprints: dict[str, str] = {}
+                    for action in messages:
+                        include_final_response = _should_include_final_response(action, assistant_response_seen)
+                        sse_event = action_to_sse_event(
+                            action,
+                            event_id,
+                            str(uuid.uuid4()),
+                            include_user_message=True,
+                            include_final_response=include_final_response,
+                        )
+                        if sse_event:
+                            if _should_skip_duplicate_assistant_message(
+                                action,
+                                sse_event,
+                                seen_assistant_message_fingerprints,
+                            ):
+                                continue
+                            sse_messages.append(sse_event.data.payload)
+                            event_id += 1
+                            _remember_assistant_message(sse_event, seen_assistant_message_fingerprints)
+                            if _is_visible_assistant_response(action, sse_event, tool_result_seen=tool_result_seen):
+                                assistant_response_seen = True
+                            if action.role == ActionRole.TOOL and action.status != ActionStatus.PROCESSING:
+                                tool_result_seen = True
+                elif msg.get("content"):
+                    sse_messages.append(
+                        SSEMessagePayload(
+                            message_id=str(uuid.uuid4()),
+                            role="assistant",
+                            content=[IMessageContent(type="markdown", payload={"content": msg["content"]})],
+                        )
+                    )
+                    event_id += 1
+
+        return sse_messages
+
+    # Sub-agent session databases live under the parent session's directory:
+    # {session_dir}/{parent_session_id}/{agent_name}_session_{hex}.db
+    _SUBAGENT_DB_RE = re.compile(r"^(?P<agent>[a-z][a-z0-9_]*)_session_[0-9a-f]{4,}\.db$")
+
+    def _merge_subagent_sessions(
+        self,
+        session_id: str,
+        user_id: Optional[str],
+        sse_messages: List[SSEMessagePayload],
+    ) -> List[SSEMessagePayload]:
+        """Splice nested sub-agent sessions into the main session history.
+
+        The k-th ``task()`` call of a given subagent type (in history order)
+        is paired with the k-th sub-agent DB of that type (in mtime order);
+        the sub-agent's messages are inserted directly after the invoking
+        tool call, stamped ``depth=1`` + the call's message id so the UI can
+        nest them. Read-only and best-effort: any failure leaves the main
+        history unchanged.
+        """
+        # Sub-agent DBs sit under the *user-scoped* session dir
+        # ({session_dir}/{user_id}/{session_id}/), exactly like the main
+        # session DB — resolve the scope via SessionManager the same way
+        # every other call site in this class does.
+        sub_dir = Path(
+            SessionManager(session_dir=self._session_dir, scope=user_id).session_dir
+        ) / session_id
+        if not sub_dir.is_dir():
+            return sse_messages
+        try:
+            candidates = sorted(sub_dir.glob("*.db"), key=lambda p: p.stat().st_mtime)
+        except OSError:
+            return sse_messages
+
+        subgroups: Dict[str, List[str]] = {}
+        for f in candidates:
+            m = self._SUBAGENT_DB_RE.match(f.name)
+            if m:
+                subgroups.setdefault(m.group("agent"), []).append(f.name[: -len(".db")])
+        if not subgroups:
+            return sse_messages
+
+        merged = list(sse_messages)
+        offset = 0
+        for agent, sub_sids in subgroups.items():
+            call_indices = [
+                i
+                for i, p in enumerate(merged)
+                if p.content
+                and p.content[0].type == "call-tool"
+                and p.content[0].payload.get("toolName") == "task"
+                and (p.content[0].payload.get("toolParams") or {}).get("type") == agent
+            ]
+            pairs = min(len(call_indices), len(sub_sids))
+            for k in range(pairs):
+                payloads = self._load_subagent_payloads(sub_dir, sub_sids[k])
+                if not payloads:
+                    continue
+                parent_id = merged[call_indices[k] + offset].message_id
+                for p in payloads:
+                    p.depth = 1
+                    p.parent_action_id = parent_id
+                insert_at = call_indices[k] + 1 + offset
+                merged[insert_at:insert_at] = payloads
+                offset += len(payloads)
+            # Orphans (no matching task() call in the main history — e.g. the
+            # call predates history retention): append at the end rather than
+            # dropping the sub-agent's work.
+            for sub_sid in sub_sids[pairs:]:
+                payloads = self._load_subagent_payloads(sub_dir, sub_sid)
+                for p in payloads:
+                    p.depth = 1
+                merged.extend(payloads)
+        return merged
+
+    def _load_subagent_payloads(
+        self, sub_dir: Path, sub_session_id: str
+    ) -> List[SSEMessagePayload]:
+        try:
+            # sub_dir is already user-scoped by _merge_subagent_sessions and
+            # sub-agent DBs live directly inside it — no scope here.
+            sub_manager = SessionManager(session_dir=str(sub_dir))
+            raw = sub_manager.get_session_messages(sub_session_id)
+        except Exception as e:
+            logger.warning(f"Failed to read subagent session {sub_session_id}: {e}")
+            return []
+        if not raw:
+            return []
+        try:
+            return self._raw_messages_to_payloads(raw)
+        except Exception as e:
+            logger.warning(f"Failed to convert subagent session {sub_session_id}: {e}")
+            return []

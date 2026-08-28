@@ -1,77 +1,66 @@
 import { useEffect, useRef } from 'react'
-import type { TaskTemplate } from '../stores/chatStore'
 import { useChatStore } from '../stores/chatStore'
 import MessageBubble from './MessageBubble'
 import InputBox from './InputBox'
-import OutputOptions from './OutputOptions'
-import TemplateCard from './TemplateCard'
-import FileUpload from './FileUpload'
+import WelcomeScreen from './chat/WelcomeScreen'
 
-interface ChatAreaProps {
-  template: TaskTemplate | undefined
+function formatTokens(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
+  return String(n)
 }
 
-export default function ChatArea({ template }: ChatAreaProps) {
-  const { messages } = useChatStore()
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+export default function ChatArea() {
+  const { messages, isStreaming, sessionId, turnUsage, turnDuration } = useChatStore()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const hasMessages = messages.length > 0
+  const showWelcome = !sessionId && !hasMessages
+  const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === 'user'
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages])
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages, isStreaming])
 
-  if (!template) {
+  if (showWelcome) {
     return (
-      <div className="chat-area initial">
-        <div className="chat-welcome">
-          <h1>选择任务类型开始</h1>
-          <p className="chat-welcome-subtitle">从左侧面板选择一个任务场景</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!hasMessages) {
-    return (
-      <div className="chat-area initial">
-        <div className="chat-welcome">
-          <h1>{template.heading}</h1>
-          <p className="chat-welcome-subtitle">{template.subtitle}</p>
-
-          {template.fileUpload && <FileUpload />}
-
-          <InputBox template={template} />
-
-          {template.outputOptions.length > 0 && (
-            <OutputOptions groups={template.outputOptions} />
-          )}
-
-          {template.quickActions.length > 0 && (
-            <div className="quick-grid">
-              {template.quickActions.map((action, i) => (
-                <TemplateCard key={i} action={action} />
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="chat-area">
+        <WelcomeScreen />
       </div>
     )
   }
 
   return (
     <div className="chat-area">
-      <div className="messages-container">
-        {messages.map((msg) => (
+      <div className="messages-container" ref={scrollRef}>
+        {messages.map(msg => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
-        <div ref={messagesEndRef} />
+        {isStreaming && lastIsUser && (
+          <div className="message assistant">
+            <div className="message-body">
+              <div className="assistant-thinking"><span className="dot" />思考中<span className="dot" /><span className="dot" /></div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)', background: 'var(--panel-bg)' }}>
-        <InputBox template={template} />
+      <div className="chat-input-dock">
+        {isStreaming && (
+          <div className="streaming-status">
+            正在生成中…
+            {turnUsage && turnUsage.totalTokens > 0 && (
+              <span className="streaming-usage">↑{formatTokens(turnUsage.inputTokens)} ↓{formatTokens(turnUsage.outputTokens)}</span>
+            )}
+          </div>
+        )}
+        {!isStreaming && turnUsage && turnUsage.totalTokens > 0 && (
+          <div className="streaming-status done">
+            本轮 {turnUsage.requests} 次调用 · 共 {formatTokens(turnUsage.totalTokens)} tokens
+            {turnDuration != null && ` · ${turnDuration.toFixed(1)}s`}
+          </div>
+        )}
+        <InputBox />
       </div>
     </div>
   )

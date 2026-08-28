@@ -1,6 +1,6 @@
 ---
 name: osi-metrics-authoring
-description: OSI core schema metric authoring specification — metric expression shape, Datus extension hints, window/period-over-period semantics, and skip gates
+description: OSI 核心 schema 指标编写规范——指标表达式形态、Datus 扩展提示、窗口/同比环比语义与跳过闸门
 tags:
   - metrics
   - osi

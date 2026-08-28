@@ -1,6 +1,6 @@
 ---
 name: storage-classify
-description: Decide where a produced artifact must be persisted before writing it, then route semantic_models and metrics through semantic_modeling, reference_sql through gen_sql_summary, knowledge through extract-knowledge (lite), memory through add_memory, skills through create-skill, and AGENTS.md edits directly. Load before persisting any business fact, validated SQL, metric/model definition, session preference, project convention, or reusable workflow.
+description: 在写入任何产物前先决定它应持久化到哪里，然后路由：semantic_models 与 metrics 走 semantic_modeling，reference_sql 走 gen_sql_summary，knowledge 走 extract-knowledge（lite），memory 走 add_memory，skills 走 create-skill，AGENTS.md 直接编辑。在持久化任何业务事实、已验证 SQL、指标/模型定义、会话偏好、项目约定或可复用工作流之前加载本技能。
 tags:
   - storage
   - classification

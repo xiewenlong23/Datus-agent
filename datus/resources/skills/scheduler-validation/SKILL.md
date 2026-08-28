@@ -1,6 +1,6 @@
 ---
 name: scheduler-validation
-description: Scheduler validator driven by ValidationHook — read-only static verification of scheduled jobs (schedule correctness, configuration, runtime context already collected by deterministic hook). Does not trigger test runs.
+description: 由 ValidationHook 驱动的调度器校验器——对定时任务做只读静态校验（调度正确性、配置、已由确定性 hook 采集的运行时上下文）。不触发试跑。
 tags:
   - scheduler
   - orchestration

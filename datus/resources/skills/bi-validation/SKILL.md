@@ -1,6 +1,6 @@
 ---
 name: bi-validation
-description: BI validator driven by ValidationHook — inspects every dashboard, chart, and dataset delivered in the run, verifies config quality (chart type, metrics, dimensions, dataset wiring) and data presence via get_chart_data when supported
+description: 由 ValidationHook 驱动的 BI 校验器——检查本次运行交付的每个仪表盘、图表和数据集，验证配置质量（图表类型、指标、维度、数据集绑定），并在支持时通过 get_chart_data 验证数据是否存在
 tags:
   - bi
   - dashboard

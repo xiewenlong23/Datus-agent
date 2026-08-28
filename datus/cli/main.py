@@ -273,9 +273,11 @@ class Application:
 
         is_repl = args.print_mode is None and not args.web
         if not args.datasource:
-            # Try to auto-select: default datasource or single datasource
-            args.datasource = self._resolve_default_datasource(args, allow_empty=is_repl)
-            if not args.datasource and not is_repl:
+            # Try to auto-select: default datasource or single datasource.
+            # --web must not bail out when no datasource is configured yet —
+            # the user configures data sources from the web UI itself.
+            args.datasource = self._resolve_default_datasource(args, allow_empty=True)
+            if not args.datasource and not is_repl and not args.web:
                 return
 
         if args.proxy_tools and args.print_mode is None:

@@ -1,6 +1,6 @@
 ---
 name: extract-knowledge
-description: Mine shortest atomic facts from (question + gold_sql) pairs into ./knowledge/*.md; either by simulating SQL drafting (lite) or by driving the gen_sql subagent in blind iteration (deep)
+description: 从（问题 + gold_sql）配对中挖掘最简原子事实并写入 ./knowledge/*.md；可通过模拟 SQL 起草（lite）或驱动 gen_sql 子代理做盲迭代（deep）
 tags:
   - knowledge
   - sql
